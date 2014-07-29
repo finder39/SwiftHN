@@ -75,7 +75,6 @@ class NewsViewController: HNTableViewController, NewsCellDelegate, CategoriesVie
   
   override func viewDidAppear(animated: Bool) {
     super.viewDidAppear(animated)
-    println(loadOnViewDidAppear)
     if (loadOnViewDidAppear) {
       self.onPullToFresh()
     } else {
