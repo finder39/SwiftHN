@@ -32,12 +32,43 @@ class NewsViewController: HNTableViewController, NewsCellDelegate, CategoriesVie
             Post.fetch(self.filter, completion: {(posts: [Post]!, error: Fetcher.ResponseError!, local: Bool) in
                 if let realDatasource = posts {
                     self.datasource = realDatasource
+                    if (self.datasource.count % 30 == 0) {
+                        self.loadMoreEnabled = true
+                    } else {
+                      self.loadMoreEnabled = false
+                    }
                 }
                 if (!local) {
                     self.refreshing = false
                 }
             })
         }
+    }
+  
+    override func onLoadMore() {
+        super.onLoadMore()
+        
+        let fetchPage = Int(ceil(Double(self.datasource.count)/30))+1
+        Post.fetch(self.filter, page:fetchPage, completion: {(posts: [Post]!, error: Fetcher.ResponseError!, local: Bool) in
+          if let realDatasource = posts {
+            var tempDatasource:NSMutableArray = NSMutableArray(array: self.datasource, copyItems: false)
+            let postsNotFromNewPageCount = ((fetchPage-1)*30)
+            if (tempDatasource.count - postsNotFromNewPageCount > 0) {
+                tempDatasource.removeObjectsInRange(NSMakeRange(postsNotFromNewPageCount, tempDatasource.count-postsNotFromNewPageCount))
+            }
+            tempDatasource.addObjectsFromArray(realDatasource)
+            self.datasource = tempDatasource
+            if (self.datasource.count % 30 == 0) {
+                self.loadMoreEnabled = true
+            } else {
+                self.loadMoreEnabled = false
+            }
+          }
+          if (!local) {
+              self.refreshing = false
+              self.endLoadMore()
+          }
+      })
     }
 
     override func viewDidAppear(animated: Bool) {
